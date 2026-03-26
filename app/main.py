@@ -5,7 +5,7 @@ from app.logger import setup_logger
 from app.executor import execute_task
 
 
-TASKS_FOLDER = "tasks"
+TASKS_FOLDER = "tasks/pending"
 
 
 def main():
