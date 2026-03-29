@@ -1,18 +1,15 @@
 import logging
 import os
-from dotenv import load_dotenv
 
-load_dotenv()
+from app.config import LOG_LEVEL, LOGS_FOLDER, LOG_FILE
 
 
 def setup_logger():
-    os.makedirs("logs", exist_ok=True)
-
-    log_level = os.getenv("LOG_LEVEL", "INFO")
+    os.makedirs(LOGS_FOLDER, exist_ok=True)
 
     logging.basicConfig(
-        filename="logs/engine.log",
-        level=getattr(logging, log_level),
+        filename=LOG_FILE,
+        level=getattr(logging, LOG_LEVEL.upper(), logging.INFO),
         format="%(asctime)s - %(levelname)s - %(message)s"
     )
 

@@ -1,13 +1,9 @@
 import os
 import logging
-from dotenv import load_dotenv
 
 from app.logger import setup_logger
 from app.executor import execute_task
-
-load_dotenv()
-
-TASKS_FOLDER = os.getenv("TASKS_FOLDER")
+from app.config import TASKS_FOLDER
 
 
 def main():
