@@ -24,10 +24,10 @@ def main():
         task_path = os.path.join(TASKS_FOLDER, task_file)
 
         if os.path.isfile(task_path):
-            execute_task(task_path)
-
-    logging.info("AutomataOps engine finished processing tasks.")
-
+            try:
+                execute_task(task_path)
+            except Exception as e:
+                logging.error(f"[SYSTEM ERROR] Failed processing {task_path}: {str(e)}")
 
 if __name__ == "__main__":
     main()
