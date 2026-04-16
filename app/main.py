@@ -14,7 +14,7 @@ def main():
         logging.error(f"Tasks folder '{TASKS_FOLDER}' does not exist.")
         return
 
-    task_files = os.listdir(TASKS_FOLDER)
+    task_files = sorted(os.listdir(TASKS_FOLDER))
 
     if not task_files:
         logging.warning("No tasks found in the tasks folder.")
@@ -28,6 +28,9 @@ def main():
                 execute_task(task_path)
             except Exception as e:
                 logging.error(f"[SYSTEM ERROR] Failed processing {task_path}: {str(e)}")
+
+    logging.info("AutomataOps engine finished processing tasks.")
+
 
 if __name__ == "__main__":
     main()

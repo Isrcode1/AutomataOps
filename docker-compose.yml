@@ -1,0 +1,9 @@
+services:
+  automataops:
+    build: .
+    container_name: automataops_engine
+    env_file:
+      - .env
+    volumes:
+      - ./:/app
+    command: python -m app.main
