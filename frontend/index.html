@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AutomataOps</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #0f1117;
+      color: #e0e0e0;
+      min-height: 100vh;
+    }
+
+    header {
+      background: #1a1d27;
+      padding: 20px 40px;
+      border-bottom: 1px solid #2a2d3e;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    header h1 { font-size: 1.5rem; color: #fff; }
+    header span { font-size: 0.8rem; background: #4f46e5; padding: 3px 10px; border-radius: 20px; }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      padding: 30px 40px 0;
+    }
+
+    .stat-card {
+      background: #1a1d27;
+      border-radius: 10px;
+      padding: 20px;
+      border: 1px solid #2a2d3e;
+    }
+
+    .stat-card .label { font-size: 0.8rem; color: #888; margin-bottom: 8px; }
+    .stat-card .value { font-size: 2rem; font-weight: bold; }
+    .total .value { color: #4f46e5; }
+    .pending .value { color: #f59e0b; }
+    .completed .value { color: #10b981; }
+    .failed .value { color: #ef4444; }
+
+    .main {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      padding: 30px 40px;
+    }
+
+    .card {
+      background: #1a1d27;
+      border-radius: 10px;
+      padding: 24px;
+      border: 1px solid #2a2d3e;
+    }
+
+    .card h2 { font-size: 1rem; margin-bottom: 20px; color: #aaa; text-transform: uppercase; letter-spacing: 1px; }
+
+    input, select {
+      width: 100%;
+      padding: 10px 14px;
+      background: #0f1117;
+      border: 1px solid #2a2d3e;
+      border-radius: 8px;
+      color: #e0e0e0;
+      margin-bottom: 12px;
+      font-size: 0.95rem;
+    }
+
+    button {
+      width: 100%;
+      padding: 11px;
+      background: #4f46e5;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    button:hover { background: #4338ca; }
+
+    .filters { display: flex; gap: 10px; margin-bottom: 16px; }
+    .filters input, .filters select { margin-bottom: 0; }
+    .filters button { width: auto; padding: 10px 18px; }
+
+    .task-list { display: flex; flex-direction: column; gap: 10px; max-height: 400px; overflow-y: auto; }
+
+    .task-item {
+      background: #0f1117;
+      border: 1px solid #2a2d3e;
+      border-radius: 8px;
+      padding: 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .task-info .title { font-size: 0.95rem; margin-bottom: 4px; }
+    .task-info .meta { font-size: 0.75rem; color: #666; }
+
+    .task-actions { display: flex; gap: 8px; }
+
+    .badge {
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: bold;
+    }
+
+    .badge.pending { background: #451a03; color: #f59e0b; }
+    .badge.completed { background: #022c22; color: #10b981; }
+    .badge.failed { background: #450a0a; color: #ef4444; }
+
+    .btn-small {
+      width: auto;
+      padding: 5px 12px;
+      font-size: 0.8rem;
+      border-radius: 6px;
+    }
+
+    .btn-complete { background: #065f46; }
+    .btn-complete:hover { background: #047857; }
+    .btn-delete { background: #7f1d1d; }
+    .btn-delete:hover { background: #991b1b; }
+
+    .toast {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      background: #10b981;
+      color: white;
+      padding: 12px 20px;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    .toast.show { opacity: 1; }
+    .toast.error { background: #ef4444; }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>⚙️ AutomataOps</h1>
+  <span>LIVE</span>
+</header>
+
+<div class="stats">
+  <div class="stat-card total"><div class="label">TOTAL TASKS</div><div class="value" id="s-total">0</div></div>
+  <div class="stat-card pending"><div class="label">PENDING</div><div class="value" id="s-pending">0</div></div>
+  <div class="stat-card completed"><div class="label">COMPLETED</div><div class="value" id="s-completed">0</div></div>
+  <div class="stat-card failed"><div class="label">FAILED</div><div class="value" id="s-failed">0</div></div>
+</div>
+
+<div class="main">
+  <div class="card">
+    <h2>Create Task</h2>
+    <input type="text" id="task-title" placeholder="Task title..." />
+    <select id="task-priority">
+      <option value="normal">Normal Priority</option>
+      <option value="high">High Priority</option>
+      <option value="low">Low Priority</option>
+    </select>
+    <button onclick="createTask()">+ Create Task</button>
+  </div>
+
+  <div class="card">
+    <h2>Task List</h2>
+    <div class="filters">
+      <input type="text" id="search" placeholder="Search..." oninput="loadTasks()" />
+      <select id="filter-status" onchange="loadTasks()">
+        <option value="">All</option>
+        <option value="pending">Pending</option>
+        <option value="completed">Completed</option>
+        <option value="failed">Failed</option>
+      </select>
+    </div>
+    <div class="task-list" id="task-list">
+      <p style="color:#555; text-align:center; margin-top:20px;">No tasks yet</p>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  const API = "http://127.0.0.1:8000";
+
+  async function loadStats() {
+    const res = await fetch(`${API}/tasks/stats/summary`);
+    const data = await res.json();
+    document.getElementById("s-total").textContent = data.total;
+    document.getElementById("s-pending").textContent = data.pending;
+    document.getElementById("s-completed").textContent = data.completed;
+    document.getElementById("s-failed").textContent = data.failed;
+  }
+
+  async function loadTasks() {
+    const search = document.getElementById("search").value;
+    const status = document.getElementById("filter-status").value;
+    let url = `${API}/tasks/?limit=50`;
+    if (status) url += `&status=${status}`;
+    if (search) url += `&search=${search}`;
+
+    const res = await fetch(url);
+    const data = await res.json();
+    const tasks = data.results || [];
+    const list = document.getElementById("task-list");
+
+    if (tasks.length === 0) {
+      list.innerHTML = '<p style="color:#555; text-align:center; margin-top:20px;">No tasks found</p>';
+      return;
+    }
+
+    list.innerHTML = tasks.map(t => `
+      <div class="task-item">
+        <div class="task-info">
+          <div class="title">${t.title}</div>
+          <div class="meta">#${t.id} · ${t.priority} priority · ${new Date(t.created_at).toLocaleString()}</div>
+        </div>
+        <div class="task-actions">
+          <span class="badge ${t.status}">${t.status}</span>
+          ${t.status === 'pending' ? `<button class="btn-small btn-complete" onclick="updateTask(${t.id}, 'completed')">✓</button>` : ''}
+          <button class="btn-small btn-delete" onclick="deleteTask(${t.id})">✕</button>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  async function createTask() {
+    const title = document.getElementById("task-title").value.trim();
+    const priority = document.getElementById("task-priority").value;
+    if (!title) return showToast("Enter a task title", true);
+
+    await fetch(`${API}/tasks/`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ title, priority })
+    });
+
+    document.getElementById("task-title").value = "";
+    showToast("Task created!");
+    loadTasks();
+    loadStats();
+  }
+
+  async function updateTask(id, status) {
+    await fetch(`${API}/tasks/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status })
+    });
+    showToast("Task updated!");
+    loadTasks();
+    loadStats();
+  }
+
+  async function deleteTask(id) {
+    await fetch(`${API}/tasks/${id}`, { method: "DELETE" });
+    showToast("Task deleted!");
+    loadTasks();
+    loadStats();
+  }
+
+  function showToast(msg, error = false) {
+    const t = document.getElementById("toast");
+    t.textContent = msg;
+    t.className = "toast show" + (error ? " error" : "");
+    setTimeout(() => t.className = "toast", 2500);
+  }
+
+  loadStats();
+  loadTasks();
+  setInterval(() => { loadStats(); loadTasks(); }, 10000);
+</script>
+</body>
+</html>
