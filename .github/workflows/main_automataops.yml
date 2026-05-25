@@ -48,16 +48,19 @@ jobs:
             git fetch origin main
             git reset --hard origin/main
 
-            # Install dependencies using venv full path
-            ~/AutomataOps/backend/venv/bin/pip install -r ~/AutomataOps/backend/requirements.txt
+            # Delete and recreate venv fresh
+            cd backend
+            rm -rf venv
+            python3 -m venv venv
+            venv/bin/pip install --upgrade pip
+            venv/bin/pip install -r requirements.txt
 
             # Kill existing uvicorn
             pkill -f uvicorn || true
             sleep 2
 
-            # Start uvicorn using full path and nohup properly
-            cd ~/AutomataOps/backend
-            nohup ~/AutomataOps/backend/venv/bin/uvicorn app.main:app --host 0.0.0.0 --port 8000 > ~/app.log 2>&1 &
+            # Start uvicorn with full path
+            nohup venv/bin/uvicorn app.main:app --host 0.0.0.0 --port 8000 > ~/app.log 2>&1 &
             echo $! > ~/uvicorn.pid
             disown -h $!
             sleep 3
